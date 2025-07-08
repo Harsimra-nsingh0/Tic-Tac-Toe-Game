@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic Tac Toe with AI, Dark Mode & Sound</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      color: #333;
+      text-align: center;
+      padding: 50px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.dark {
+      background-color: #1e1e1e;
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      gap: 10px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: white;
+      border: 2px solid #333;
+      font-size: 2.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    body.dark .cell {
+      background-color: #333;
+      color: white;
+    }
+
+    .cell:hover {
+      background-color: #eee;
+    }
+
+    body.dark .cell:hover {
+      background-color: #555;
+    }
+
+    #status {
+      font-size: 1.5rem;
+      margin: 20px 0;
+    }
+
+    button, label {
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    .toggle-switch {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe - AI vs You</h1>
+  <div class="board" id="board">
+    <div class="cell" data-index="0"></div>
+    <div class="cell" data-index="1"></div>
+    <div class="cell" data-index="2"></div>
+    <div class="cell" data-index="3"></div>
+    <div class="cell" data-index="4"></div>
+    <div class="cell" data-index="5"></div>
+    <div class="cell" data-index="6"></div>
+    <div class="cell" data-index="7"></div>
+    <div class="cell" data-index="8"></div>
+  </div>
+  <div id="status">Player X's turn</div>
+  <button id="restartBtn">Restart</button>
+
+  <div class="toggle-switch">
+    <label for="darkToggle">🌙 Dark Mode</label>
+    <input type="checkbox" id="darkToggle">
+  </div>
+
+  <!-- Sounds -->
+  <audio id="clickSound" src="https://www.soundjay.com/button/sounds/button-09.mp3"></audio>
+  <audio id="winSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
+  <audio id="drawSound" src="https://www.soundjay.com/button/sounds/beep-06.mp3"></audio>
+
+  <script>
+    const cells = document.querySelectorAll('.cell');
+    const statusText = document.getElementById('status');
+    const restartBtn = document.getElementById('restartBtn');
+    const darkToggle = document.getElementById('darkToggle');
+
+    const clickSound = document.getElementById('clickSound');
+    const winSound = document.getElementById('winSound');
+    const drawSound = document.getElementById('drawSound');
+
+    let board = ['', '', '', '', '', '', '', '', ''];
+    let currentPlayer = 'X';
+    let gameActive = true;
+
+    const winPatterns = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6]
+    ];
+
+    function handleClick(e) {
+      const index = e.target.dataset.index;
+      if (board[index] || !gameActive || currentPlayer !== 'X') return;
+
+      board[index] = 'X';
+      e.target.textContent = 'X';
+      clickSound.play();
+      if (checkGameEnd()) return;
+
+      currentPlayer = 'O';
+      statusText.textContent = "AI (O)'s turn";
+      setTimeout(aiMove, 500);
+    }
+
+    function aiMove() {
+      if (!gameActive) return;
+      let emptyIndices = board.map((val, idx) => val === '' ? idx : null).filter(val => val !== null);
+      let aiIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+      board[aiIndex] = 'O';
+      cells[aiIndex].textContent = 'O';
+      clickSound.play();
+      if (checkGameEnd()) return;
+
+      currentPlayer = 'X';
+      statusText.textContent = "Player X's turn";
+    }
+
+    function checkGameEnd() {
+      let winner = null;
+
+      winPatterns.forEach(pattern => {
+        const [a, b, c] = pattern;
+        if (board[a] && board[a] === board[b] && board[b] === board[c]) {
+          winner = board[a];
+        }
+      });
+
+      if (winner) {
+        statusText.textContent = `Player ${winner} wins!`;
+        gameActive = false;
+        winSound.play();
+        return true;
+      }
+
+      if (!board.includes('')) {
+        statusText.textContent = "It's a draw!";
+        gameActive = false;
+        drawSound.play();
+        return true;
+      }
+
+      return false;
+    }
+
+    function restartGame() {
+      board = ['', '', '', '', '', '', '', '', ''];
+      cells.forEach(cell => cell.textContent = '');
+      currentPlayer = 'X';
+      gameActive = true;
+      statusText.textContent = "Player X's turn";
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+    }
+
+    cells.forEach(cell => cell.addEventListener('click', handleClick));
+    restartBtn.addEventListener('click', restartGame);
+    darkToggle.addEventListener('change', toggleDarkMode);
+  </script>
+</body>
+</html>
